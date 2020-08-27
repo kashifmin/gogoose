@@ -1,37 +1,15 @@
-package gogoose
+package gen
 
 import (
 	"context"
 	"errors"
 	"reflect"
 
+	"github.com/kashifmin/gogoose"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type User struct {
-	ID   *primitive.ObjectID `bson:"_id"`
-	Name string              `bson:"name"`
-	Age  int                 `bson:"age"`
-}
-
-func decodeSingleResult(res *mongo.SingleResult, dest interface{}) error {
-	if res == nil {
-		return errors.New("decodeSingleResult: nil SingleResult passed")
-	}
-	raw, err := res.DecodeBytes()
-	if err != nil {
-		return err
-	}
-	decodeContext := bsoncodec.DecodeContext{
-		Registry: bson.DefaultRegistry,
-		Truncate: true,
-	}
-	return bson.UnmarshalWithContext(decodeContext, raw, dest)
-}
 
 type UserModel struct {
 	dbColl *mongo.Collection
@@ -39,7 +17,7 @@ type UserModel struct {
 
 type UserDocument struct {
 	dbColl *mongo.Collection
-	raw    *User
+	raw    *gogoose.User
 }
 
 func (userDocument *UserDocument) Save(ctx context.Context) error {
@@ -54,7 +32,7 @@ func (userDocument *UserDocument) Save(ctx context.Context) error {
 	fieldToUpdate := bson.M{}
 	for i := 0; i < nFields; i++ {
 		field := structTypeRef.Field(i)
-		fieldName := GetBsonName(field)
+		fieldName := gogoose.GetBsonName(field)
 		if fieldName == "_id" {
 			continue
 		}
@@ -67,20 +45,20 @@ func (userDocument *UserDocument) Save(ctx context.Context) error {
 
 func (userModel *UserModel) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*UserDocument, error) {
 	res := userModel.dbColl.FindOne(ctx, filter)
-	user := &User{}
-	err := decodeSingleResult(res, user)
+	user := &gogoose.User{}
+	err := gogoose.DecodeSingleResult(res, user)
 	if err != nil {
 		return nil, err
 	}
 	return NewUserDocument(user, userModel.dbColl), nil
 }
 
-func (userModel *UserModel) New(user *User) *UserDocument {
+func (userModel *UserModel) New(user *gogoose.User) *UserDocument {
 	return &UserDocument{raw: user, dbColl: userModel.dbColl}
 }
 
 // NewUserDocument ...
-func NewUserDocument(user *User, coll *mongo.Collection) *UserDocument {
+func NewUserDocument(user *gogoose.User, coll *mongo.Collection) *UserDocument {
 	return &UserDocument{
 		dbColl: coll,
 		raw:    user,

@@ -1,10 +1,30 @@
 package gogoose
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 	"unicode"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+func DecodeSingleResult(res *mongo.SingleResult, dest interface{}) error {
+	if res == nil {
+		return errors.New("decodeSingleResult: nil SingleResult passed")
+	}
+	raw, err := res.DecodeBytes()
+	if err != nil {
+		return err
+	}
+	decodeContext := bsoncodec.DecodeContext{
+		Registry: bson.DefaultRegistry,
+		Truncate: true,
+	}
+	return bson.UnmarshalWithContext(decodeContext, raw, dest)
+}
 
 //Lower cases first char of string
 func lowerInitial(str string) string {

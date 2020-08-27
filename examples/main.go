@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kashifmin/gogoose"
+	"github.com/kashifmin/gogoose/gen"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -26,7 +27,7 @@ func NewMongoClient() *mongo.Database {
 
 func main() {
 	db := NewMongoClient()
-	userModel := gogoose.NewUserModel(db.Collection("kuser"))
+	userModel := gen.NewUserModel(db.Collection("kuser"))
 	oid := primitive.NewObjectID()
 	doc := userModel.New(&gogoose.User{Name: "Kashif", Age: 23, ID: &oid})
 	err := doc.Save(context.Background())
