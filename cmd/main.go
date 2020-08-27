@@ -80,6 +80,22 @@ func (userDocument *{{.Name}}Document) Save(ctx context.Context) error {
 	return err
 }
 
+func (userModel *{{.Name}}Model) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*{{.Name}}Document, error) {
+	cursor, err := userModel.dbColl.Find(ctx, filter, opts...)
+	if err != nil {
+		return nil, err
+	}
+	docs := make([]*{{.Name}}Document, 0, 0)
+	for cursor.Next(ctx) {
+		user := &{{.StructType}}{}
+		err := bson.Unmarshal(cursor.Current, user)
+		if err != nil {
+			return docs, err
+		}
+	}
+	return docs, cursor.Err()
+}
+
 func (userModel *{{.Name}}Model) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*{{.Name}}Document, error) {
 	res := userModel.dbColl.FindOne(ctx, filter)
 	user := &{{.StructType}}{}

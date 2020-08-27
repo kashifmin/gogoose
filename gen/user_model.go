@@ -43,6 +43,22 @@ func (userDocument *UserDocument) Save(ctx context.Context) error {
 	return err
 }
 
+func (userModel *UserModel) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*UserDocument, error) {
+	cursor, err := userModel.dbColl.Find(ctx, filter, opts...)
+	if err != nil {
+		return nil, err
+	}
+	docs := make([]*UserDocument, 0, 0)
+	for cursor.Next(ctx) {
+		user := &gogoose.User{}
+		err := bson.Unmarshal(cursor.Current, user)
+		if err != nil {
+			return docs, err
+		}
+	}
+	return docs, cursor.Err()
+}
+
 func (userModel *UserModel) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*UserDocument, error) {
 	res := userModel.dbColl.FindOne(ctx, filter)
 	user := &gogoose.User{}
