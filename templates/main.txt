@@ -5,22 +5,23 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/kashifmin/gogoose"
+	"{{.StructImport}}"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type UserModel struct {
+type {{.Name}}Model struct {
 	dbColl *mongo.Collection
 }
 
-type UserDocument struct {
+type {{.Name}}Document struct {
 	dbColl *mongo.Collection
-	raw    *gogoose.User
+	raw    *{{.StructType}}
 }
 
-func (userDocument *UserDocument) Save(ctx context.Context) error {
+func (userDocument *{{.Name}}Document) Save(ctx context.Context) error {
 	// TODO: implement difftracker
 	if userDocument.raw.ID == nil {
 		return errors.New("_id is nil")
@@ -43,14 +44,14 @@ func (userDocument *UserDocument) Save(ctx context.Context) error {
 	return err
 }
 
-func (userModel *UserModel) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*UserDocument, error) {
+func (userModel *{{.Name}}Model) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) ([]*{{.Name}}Document, error) {
 	cursor, err := userModel.dbColl.Find(ctx, filter, opts...)
 	if err != nil {
 		return nil, err
 	}
-	docs := make([]*UserDocument, 0, 0)
+	docs := make([]*{{.Name}}Document, 0, 0)
 	for cursor.Next(ctx) {
-		user := &gogoose.User{}
+		user := &{{.StructType}}{}
 		err := bson.Unmarshal(cursor.Current, user)
 		if err != nil {
 			return docs, err
@@ -59,17 +60,17 @@ func (userModel *UserModel) Find(ctx context.Context, filter interface{}, opts .
 	return docs, cursor.Err()
 }
 
-func (userModel *UserModel) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*UserDocument, error) {
+func (userModel *{{.Name}}Model) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*{{.Name}}Document, error) {
 	res := userModel.dbColl.FindOne(ctx, filter)
-	user := &gogoose.User{}
+	user := &{{.StructType}}{}
 	err := gogoose.DecodeSingleResult(res, user)
 	if err != nil {
 		return nil, err
 	}
-	return NewUserDocument(user, userModel.dbColl), nil
+	return New{{.Name}}Document(user, userModel.dbColl), nil
 }
 
-func (userModel *UserModel) FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) (*UserDocument, error) {
+func (userModel *{{.Name}}Model) FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) (*{{.Name}}Document, error) {
 	res := userModel.dbColl.FindOneAndUpdate(ctx, filter, update, opts...)
 	user := &gogoose.User{}
 	err := gogoose.DecodeSingleResult(res, user)
@@ -79,7 +80,7 @@ func (userModel *UserModel) FindOneAndUpdate(ctx context.Context, filter interfa
 	return NewUserDocument(user, userModel.dbColl), nil
 }
 
-func (userModel *UserModel) FindOneAndDelete(ctx context.Context, filter interface{}, opts ...*options.FindOneAndDeleteOptions) (*UserDocument, error) {
+func (userModel *{{.Name}}Model) FindOneAndDelete(ctx context.Context, filter interface{}, opts ...*options.FindOneAndDeleteOptions) (*{{.Name}}Document, error) {
 	res := userModel.dbColl.FindOneAndDelete(ctx, filter, opts...)
 	user := &gogoose.User{}
 	err := gogoose.DecodeSingleResult(res, user)
@@ -89,7 +90,7 @@ func (userModel *UserModel) FindOneAndDelete(ctx context.Context, filter interfa
 	return NewUserDocument(user, userModel.dbColl), nil
 }
 
-func (userModel *UserModel) FindOneAndReplace(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndReplaceOptions) (*UserDocument, error) {
+func (userModel *{{.Name}}Model) FindOneAndReplace(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndReplaceOptions) (*{{.Name}}Document, error) {
 	res := userModel.dbColl.FindOneAndReplace(ctx, filter, update, opts...)
 	user := &gogoose.User{}
 	err := gogoose.DecodeSingleResult(res, user)
@@ -99,34 +100,34 @@ func (userModel *UserModel) FindOneAndReplace(ctx context.Context, filter interf
 	return NewUserDocument(user, userModel.dbColl), nil
 }
 
-func (userModel *UserModel) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (userModel *{{.Name}}Model) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return userModel.dbColl.UpdateOne(ctx, filter, update, opts...)
 }
 
-func (userModel *UserModel) UpdateMany(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+func (userModel *{{.Name}}Model) UpdateMany(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return userModel.dbColl.UpdateMany(ctx, filter, update, opts...)
 }
 
-func (userModel *UserModel) DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+func (userModel *{{.Name}}Model) DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	return userModel.dbColl.DeleteOne(ctx, filter, opts...)
 }
 
-func (userModel *UserModel) DeleteMany(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+func (userModel *{{.Name}}Model) DeleteMany(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	return userModel.dbColl.DeleteMany(ctx, filter, opts...)
 }
-
-func (userModel *UserModel) New(user *gogoose.User) *UserDocument {
-	return &UserDocument{raw: user, dbColl: userModel.dbColl}
+ 
+func (userModel *{{.Name}}Model) New(user *{{.StructType}}) *{{.Name}}Document {
+	return &{{.Name}}Document{raw: user, dbColl: userModel.dbColl}
 }
 
-// NewUserDocument ...
-func NewUserDocument(user *gogoose.User, coll *mongo.Collection) *UserDocument {
-	return &UserDocument{
+// New{{.Name}}Document ...
+func New{{.Name}}Document(user *{{.StructType}}, coll *mongo.Collection) *{{.Name}}Document {
+	return &{{.Name}}Document{
 		dbColl: coll,
 		raw:    user,
 	}
 }
 
-func NewUserModel(collection *mongo.Collection) *UserModel {
-	return &UserModel{dbColl: collection}
+func New{{.Name}}Model(collection *mongo.Collection) *{{.Name}}Model {
+	return &{{.Name}}Model{dbColl: collection}
 }
