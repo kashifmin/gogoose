@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/kashifmin/gogoose"
+	"github.com/kashifmin/gogoose/examples/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,7 +18,7 @@ type UserModel struct {
 
 type UserDocument struct {
 	dbColl *mongo.Collection
-	raw    *gogoose.User
+	raw    *types.User
 }
 
 func (userDocument *UserDocument) Save(ctx context.Context) error {
@@ -50,7 +51,7 @@ func (userModel *UserModel) Find(ctx context.Context, filter interface{}, opts .
 	}
 	docs := make([]*UserDocument, 0, 0)
 	for cursor.Next(ctx) {
-		user := &gogoose.User{}
+		user := &types.User{}
 		err := bson.Unmarshal(cursor.Current, user)
 		if err != nil {
 			return docs, err
@@ -61,7 +62,7 @@ func (userModel *UserModel) Find(ctx context.Context, filter interface{}, opts .
 
 func (userModel *UserModel) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) (*UserDocument, error) {
 	res := userModel.dbColl.FindOne(ctx, filter)
-	user := &gogoose.User{}
+	user := &types.User{}
 	err := gogoose.DecodeSingleResult(res, user)
 	if err != nil {
 		return nil, err
@@ -71,7 +72,7 @@ func (userModel *UserModel) FindOne(ctx context.Context, filter interface{}, opt
 
 func (userModel *UserModel) FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) (*UserDocument, error) {
 	res := userModel.dbColl.FindOneAndUpdate(ctx, filter, update, opts...)
-	user := &gogoose.User{}
+	user := &types.User{}
 	err := gogoose.DecodeSingleResult(res, user)
 	if err != nil {
 		return nil, err
@@ -81,7 +82,7 @@ func (userModel *UserModel) FindOneAndUpdate(ctx context.Context, filter interfa
 
 func (userModel *UserModel) FindOneAndDelete(ctx context.Context, filter interface{}, opts ...*options.FindOneAndDeleteOptions) (*UserDocument, error) {
 	res := userModel.dbColl.FindOneAndDelete(ctx, filter, opts...)
-	user := &gogoose.User{}
+	user := &types.User{}
 	err := gogoose.DecodeSingleResult(res, user)
 	if err != nil {
 		return nil, err
@@ -91,7 +92,7 @@ func (userModel *UserModel) FindOneAndDelete(ctx context.Context, filter interfa
 
 func (userModel *UserModel) FindOneAndReplace(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndReplaceOptions) (*UserDocument, error) {
 	res := userModel.dbColl.FindOneAndReplace(ctx, filter, update, opts...)
-	user := &gogoose.User{}
+	user := &types.User{}
 	err := gogoose.DecodeSingleResult(res, user)
 	if err != nil {
 		return nil, err
@@ -115,12 +116,12 @@ func (userModel *UserModel) DeleteMany(ctx context.Context, filter interface{}, 
 	return userModel.dbColl.DeleteMany(ctx, filter, opts...)
 }
 
-func (userModel *UserModel) New(user *gogoose.User) *UserDocument {
+func (userModel *UserModel) New(user *types.User) *UserDocument {
 	return &UserDocument{raw: user, dbColl: userModel.dbColl}
 }
 
 // NewUserDocument ...
-func NewUserDocument(user *gogoose.User, coll *mongo.Collection) *UserDocument {
+func NewUserDocument(user *types.User, coll *mongo.Collection) *UserDocument {
 	return &UserDocument{
 		dbColl: coll,
 		raw:    user,

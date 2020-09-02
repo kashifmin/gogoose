@@ -19,8 +19,8 @@ type data struct {
 
 func main() {
 	var d data
-	flag.StringVar(&d.StructType, "type", "gogoose.User", "The struct type for model being generated")
-	flag.StringVar(&d.StructImport, "import", "github.com/kashifmin/gogoose", "The struct import path for model being generated")
+	flag.StringVar(&d.StructType, "type", "types.User", "The struct type for model being generated")
+	flag.StringVar(&d.StructImport, "import", "github.com/kashifmin/gogoose/examples/types", "The struct import path for model being generated")
 	flag.StringVar(&d.Name, "name", "User", "The prefix name for model structs")
 	flag.Parse()
 
