@@ -21,6 +21,10 @@ type UserDocument struct {
 	raw    *types.User
 }
 
+func (userDocument *UserDocument) GetRaw() *types.User {
+	return userDocument.raw
+}
+
 func (userDocument *UserDocument) Save(ctx context.Context) error {
 	// TODO: implement difftracker
 	if userDocument.raw.ID == nil {
@@ -56,6 +60,7 @@ func (userModel *UserModel) Find(ctx context.Context, filter interface{}, opts .
 		if err != nil {
 			return docs, err
 		}
+		docs = append(docs, NewUserDocument(user, userModel.dbColl))
 	}
 	return docs, cursor.Err()
 }
